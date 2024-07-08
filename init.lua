@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -117,6 +117,9 @@ vim.opt.clipboard = 'unnamedplus'
 
 -- Enable break indent
 vim.opt.breakindent = true
+
+vim.opt.tabstop = 4
+vim.opt.expandtab = true
 
 -- Save undo history
 vim.opt.undofile = true
@@ -565,10 +568,10 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
-        -- gopls = {},
+        clangd = {},
+        gopls = {},
         -- pyright = {},
-        -- rust_analyzer = {},
+        rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -780,14 +783,29 @@ require('lazy').setup({
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
     'folke/tokyonight.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
-    init = function()
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+    -- init = function()
+    -- Load the colorscheme here.
+    -- Like many other themes, this one has different styles, and you could load
+    -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+    -- vim.cmd.colorscheme 'tokyonight-night'
 
-      -- You can configure highlights by doing something like:
-      vim.cmd.hi 'Comment gui=none'
+    -- You can configure highlights by doing something like:
+    -- vim.cmd.hi 'Comment gui=none'
+    -- end,
+  },
+  {
+    'craftzdog/solarized-osaka.nvim',
+    lazy = false,
+    priority = 1000,
+    opts = {},
+  },
+  {
+    'sevcak/vintage-disco.nvim',
+    lazy = false,
+    priority = 1000,
+    opts = {},
+    init = function()
+      vim.cmd.colorscheme 'vintage-disco'
     end,
   },
 
@@ -864,6 +882,88 @@ require('lazy').setup({
     end,
   },
 
+  {
+    'echasnovski/mini.hipatterns',
+    event = 'BufReadPre',
+    opts = {
+      highlighters = {
+        hsl_color = {
+          pattern = 'hsl%(%d+,? %d+,? %d+%)',
+          group = function(_, match)
+            local utils = require 'vintage-disco.hsl'
+            --- @type string, string, string
+            local nh, ns, nl = match:match 'hsl%((%d+),? (%d+),? (%d+)%)'
+            --- @type number?, number?, number?
+            local h, s, l = tonumber(nh), tonumber(ns), tonumber(nl)
+            --- @type string
+            local hex_color = utils.hslToHex(h, s, l)
+            return MiniHipatterns.compute_hex_color_group(hex_color, 'bg')
+          end,
+        },
+      },
+    },
+  },
+
+  {
+    'nvimdev/dashboard-nvim',
+    event = 'VimEnter',
+    config = function()
+      require('dashboard').setup {
+        config = {
+          header = {
+            '',
+            '      _------___',
+            '       ／::::::::::: -_ ',
+            '     ／::::::::::::::::\\',
+            '     /:::::::::::::::::::::＼',
+            '    |:::::/(::::::::::::::::\\',
+            '    |::::ｲ /::/\\:::::ﾍ::::::|',
+            '     /::::||:ﾍ:| ヽ:::| yﾍ::::)',
+            '    /::::::／ レ_ |:::ﾉ_ |::::\\',
+            '    (:ﾊ:::::|／￣＼ﾚ-^;´  \\ﾉ""/j)',
+            '    `{:/::::\\``        ``彡::(',
+            '     \\Y::::)￣            / |～',
+            '    )/):;＼   ヽ. ン  ／ﾉ／',
+            "' y^\\| -._       ／` ",
+            '   |  ＼__`---´   ',
+            '       ／.       /|\\___ _  _,',
+            '       /::::＼   / \\| \\／\\    )',
+            '      ／ ／--\\＼/  --:\\ |:)  /| \\',
+            '',
+            ":::::::::::::::::let's go::::::::::::::::::",
+            '',
+          },
+          shortcut = {
+            -- { desc = "arch + nvim + let's fucking go", group = 'DashboardShortCut' },
+          },
+        },
+        hide = {
+          tabline = true, -- hide the tabline
+        },
+      }
+    end,
+    dependencies = { { 'nvim-tree/nvim-web-devicons' } },
+  },
+
+  {
+    'lukas-reineke/indent-blankline.nvim',
+    main = 'ibl',
+    opts = {},
+    config = function()
+      require('ibl').setup {
+        exclude = {
+          filetypes = {
+            'terminal',
+            'nofile',
+            'quickfix',
+            'prompt',
+            'dashboard',
+          },
+        },
+      }
+    end,
+  },
+
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
@@ -875,8 +975,8 @@ require('lazy').setup({
   --
   -- require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
+  require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
